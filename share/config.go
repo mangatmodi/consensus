@@ -2,20 +2,25 @@ package share
 
 import (
 	"errors"
+	"fmt"
 	"strconv"
 	"strings"
 )
 
 //Contains the config of other nodes and Port
 
-const DEFAULT_PORT = int16(6800)
-
+const DEFAULT_PORT = uint16(6800)
+var Port uint16
 type Node struct {
 	Host string
-	Port int16
+	Port uint16
 }
 
-func NewNode(host string, port int16) (*Node, error) {
+func (n *Node) String() string {
+	return fmt.Sprintf("%s:%d", n.Host, n.Port)
+}
+
+func NewNode(host string, port uint16) (*Node, error) {
 	if host == "" || port < 0 {
 		return nil, errors.New("invalid Host and Port")
 	}
@@ -38,7 +43,9 @@ func Parse(str string) ([]*Node, error) {
 		temp := strings.SplitN(el, ":", 2)
 		host := temp[0]
 
-		var port int16
+		var err error
+		var port uint16
+
 		if len(temp) == 1 {
 			port = DEFAULT_PORT
 		} else {
@@ -46,11 +53,8 @@ func Parse(str string) ([]*Node, error) {
 			if err != nil {
 				return nil, err
 			}
-
-			port = int16(p)
+			port = uint16(p)
 		}
-
-		var err error
 
 		nodes[i], err = NewNode(host, port)
 		if err != nil {
