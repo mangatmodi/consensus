@@ -1,0 +1,164 @@
+\documentclass{beamer}[10]
+\usepackage{pgf}
+\usepackage[danish]{babel}
+\usepackage[utf8]{inputenc}
+\usepackage{beamerthemesplit}
+\usepackage{graphics,epsfig, subfigure}
+\usepackage{url}
+\usepackage{srcltx}
+\usepackage{hyperref}
+
+\definecolor{kugreen}{RGB}{151,22,22}
+\definecolor{kugreenlys}{RGB}{245,10,25}
+\definecolor{kugreenlyslys}{RGB}{173,190,177}
+\definecolor{kugreenlyslyslys}{RGB}{214,223,216}
+\setbeamercovered{transparent}
+\mode<presentation>
+\usetheme[numbers,totalnumber,compress,sidebarshades]{PaloAlto}
+\setbeamertemplate{footline}[frame number]
+
+  \usecolortheme[named=kugreen]{structure}
+  \useinnertheme{circles}
+  \usefonttheme[onlymath]{serif}
+  \setbeamercovered{transparent}
+  \setbeamertemplate{blocks}[rounded][shadow=true]
+
+\logo{\includegraphics[width=0.8cm]{AppLift}}
+%\useoutertheme{infolines} 
+\title{Distributed Systems}
+\author{Mangat Rai Modi}
+\institute{Applift India}
+\date{23rd August 2016}
+
+
+
+\begin{document}
+\frame{\titlepage \vspace{-0.5cm}
+}
+
+\frame
+{
+\frametitle{Overview}
+\tableofcontents%[pausesection]
+}
+
+\section{PART I: Introduction}
+\subsection{Terminology}
+
+\frame{
+\frametitle{Some Terms}
+To start, we will try to clear the concepts on some jargon.
+\begin{itemize}
+\item Distributed Systems
+\item Grid Computing
+\item Cloud computing
+\end{itemize}
+}
+
+
+\frame{
+\frametitle{Distribution Systems}
+\begin{block}{Definition:}
+A distributed system is a model in which components located on networked computers communicate and coordinate their actions by passing messages
+\end{block}
+Architectures: Client-Server, 3-Tier, N-Tier and Peer to Peer
+
+}
+
+\frame{
+\frametitle{Grid Computing}
+\begin{block}{Definition:}
+Grid computing is the collection of computer resources from multiple locations to reach a common goal
+\end{block}
+How is it different than Supercomputer \& Cluster?
+}
+
+\frame{
+\frametitle{Cloud Computing}
+\begin{block}{Definition:}
+A system where application makes requests to the resources through some service. Service maps these requests to physical resources which can be dynamically allocated when needed.
+\end{block}
+}
+
+\subsection{Exercises}
+\frame{
+\frametitle{Questions:-}
+\begin{itemize}
+\item Is WWW Distributed System?
+\item Where does these three systems lie together?
+\item What is Applift RTB system like?
+\end{itemize}
+
+}
+
+\section{PART II: Consensus Algorithms}
+\frame{
+\frametitle{Consensus:-}
+Consensus is the task of getting all processes in a group to agree on some specific value based on the votes of each processes. Consensus is a fundamental problem in fault tolerant distributed computing.
+\begin{itemize}
+    \item synchronizing replicated state machines and making sure all replicas have the same (consistent) view of system state.
+    \item electing a leader (e.g., for mutual exclusion)
+    \item distributed, fault-tolerant logging with globally consistent sequencing
+    \item managing group membership
+    \item deciding to commit or abort for distributed transactions
+\end{itemize}
+}
+\frame{
+\frametitle{Algorithm-I}
+\begin{block}{Two Phase Commit:}
+Either every node agrees or transaction will be aborted
+\end{block}
+\begin{description}
+\item[Voting] - A coordinator suggests a value to all nodes and gathers their responses (whether they agree to the value or not). For our scenario, a transaction coordinator asks whether all resource managers (database server instances) can commit to a transaction or not. The RMs reply with a yes or no.
+\item[Commit] - If everyone agrees, the coordinator contacts all nodes to let them know the value is final. If even one node does not agree, inform all nodes that the value is not final.
+\end{description}
+Production Uses: MongoDB, Oracle-11g
+}
+
+\frame{
+\frametitle{Algorithm-II}
+\begin{block}{Three Phase Commit:}
+Adds a third phase in 2pc called "Prepare to Commit". 
+\end{block}
+on receiving a yes from all nodes in voting step, the coordinator sends a “prepare to commit” message. The expectation is that nodes can perform work that they can undo, but nothing which cannot be undone. Each node acknowledges to the coordinator that it has received a “prepare to commit” message.
+}
+\frame{
+\frametitle{Algorithm-III}
+\begin{block}{Paxos:}
+Majority driven decision. Every node is a leader.
+\end{block}
+\begin{itemize}
+\small \item \textbf{Assigning an order to the Leaders.} This allows each node to distinguish between the current Leader and the older Leader, which prevents an older Leader (which may have recovered from failure) from disrupting consensus once it is reached.
+\small  \item \textbf{Restricting a Leader’s choice in selecting a value.} Once consensus has been reached on a value, Paxos forces future Leaders to select the same value to ensure that consensus continues. This is achieved by having acceptors send the most recent value they have agreed to, along with the sequence number of the Leader from whom it was received. The new Leader can choose from one of the values received from the Acceptors, and in case no one sends any value, the Leader can choose its own value.
+
+\end{itemize}
+\small Production Uses: Aerospike, AWS, Apache Mesos, Oracle Nosql
+}
+
+\frame{
+\frametitle{Algorithm-IV}
+\begin{block}{Raft}
+Elects a leader first using Timeouts, Majority driven Decision
+\end{block}
+\begin{itemize}
+\small \item Each node have a random timeout and becomes candidate when timeout occurs.
+\small \item Each candidate node waits till random timeout to apply for leadership.
+\small \item Majority votes ensures that there is only one leader, otherwise process repeats.
+\small \item Leader keeps sending heartbeats to follower nodes to prevent them from becoming candidate.
+\small \item Leader sends data along with heartbeats.
+\end{itemize}
+\small Production Uses: Zookeeper, Redis Cluster
+}
+
+\subsection{References}
+\frame{
+\frametitle{References}
+\begin{enumerate}
+    \small \item http://thesecretlivesofdata.com/raft/
+    \footnotesize \item  http://www.cs.utexas.edu/users/lorenzo/corsi/cs380d/papers/paper2-1.pdf
+    \small \item http://www.podc.org/influential/2001-influential-paper/
+    \small \item http://antirez.com/news/62
+\end{enumerate}
+}
+
+\end{document}
